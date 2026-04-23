@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Athena Estimator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            max-width: 400px;
+            margin: auto;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+        button {
+            background: #333;
+            color: white;
+            border: none;
+        }
+
+        #result {
+            margin-top: 15px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Athena Estimator</h2>
+
+<label>Area (SY)</label>
+<input id="area" type="number">
+
+<label>Depth (inches)</label>
+<select id="depth">
+    <option>2</option>
+    <option>2.5</option>
+    <option>3</option>
+    <option>3.5</option>
+    <option>4</option>
+    <option>4.5</option>
+    <option>5</option>
+    <option>5.5</option>
+    <option>6</option>
+</select>
+
+<label>Paver Type</label>
+<select id="paverType">
+    <option value="little">Little pave</option>
+    <option value="big">Big pave</option>
+</select>
+
+<label>Price Mode</label>
+<select id="priceMode">
+    <option value="TON">$ / Ton</option>
+    <option value="SY">$ / SY</option>
+</select>
+
+<label>Price</label>
+<input id="price" type="number" value="93.50">
+
+<label>Waste %</label>
+<input id="waste" type="number" value="5">
+
+<label>O&P %</label>
+<input id="markup" type="number" value="18">
+
+<button onclick="calculate()">Calculate</button>
+
+<div id="result"></div>
+
+<script>
+
+function calculate() {
+    let area = parseFloat(document.getElementById("area").value);
+    let depth = parseFloat(document.getElementById("depth").value);
+    let depthFeet = depth / 12;
+    let price = parseFloat(document.getElementById("price").value);
+    let waste = parseFloat(document.getElementById("waste").value) / 100;
+    let markup = parseFloat(document.getElementById("markup").value) / 100;
+    let mode = document.getElementById("priceMode").value;
+    let paverType = document.getElementById("paverType").value;
+
+    if (isNaN(area) || isNaN(price)) {
+        document.getElementById("result").innerText = "Invalid input";
+        return;
+    }
+
+    let sqft = area * 9;
+
+    // tons
+    let baseTons = (sqft * depthFeet * 145) / 2000;
+    let tons = baseTons * (1 + waste);
+
+    // round
+    tons = Math.ceil(tons);
+
+    // material
+    let total;
+    if (mode === "TON") {
+        total = tons * price;
+    } else {
+        total = area * price;
+    }
+
+    // production
+    let productionCost = 0;
+    let hours = 0;
+
+    if (paverType === "little") {
+        hours = tons / 75;
+        productionCost = hours * 850;
+    } else if (paverType === "big") {
+        hours = tons / 75;
+        productionCost = hours * 1450;
+    }
+
+    hours = Math.ceil(hours);
+
+    // add production
+    total += productionCost;
+
+    // final
+    let finalPrice = total * (1 + markup);
+
+    document.getElementById("result").innerText =
+        "Base Tons: " + baseTons.toFixed(2) + "\n" +
+        "With Waste: " + tons.toFixed(2) + "\n" +
+        "Paving Hours: " + hours.toFixed(2) + "\n" +
+        "Production Cost: $" + productionCost.toFixed(2) + "\n" +
+        "Material: $" + (mode === "TON" ? (tons * price).toFixed(2) : (area * price).toFixed(2)) + "\n" +
+        "Cost: $" + total.toFixed(2) + "\n" +
+        "Final Price: $" + finalPrice.toFixed(2);
+}
+
+</script>
+
+</body>
+</html>
